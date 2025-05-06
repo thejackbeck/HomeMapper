@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Live Map</title>
+    <style>
+      #map { height: 100vh; width: 100%; }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <script>
+      const SHEET_API = 'https://script.google.com/macros/s/AKfycbzH0P4Q0BJOBHO1LNgmyarn_ksXDo03Q-zhO_bfn2vkhBVXbc0nSMaGGtXczt_cftr9/exec';
+      const MAPS_API_KEY = 'AIzaSyARqMCO0H7HkOxP6eYB2TTrYxFmC9g-F0o';
+
+      async function fetchAddresses() {
+        const res = await fetch(SHEET_API);
+        return res.json();
+      }
+
+      async function initMap() {
+        const map = new google.maps.Map(document.getElementById('map'), {
+          zoom: 5,
+          center: { lat: 45.5, lng: -122.6 },
+        });
+
+        const geocoder = new google.maps.Geocoder();
+        const data = await fetchAddresses();
+
+        data.forEach(entry => {
+          if (entry.Address) {
+            geocoder.geocode({ address: entry.Address }, (results, status) => {
+              if (status === 'OK') {
+                new google.maps.Marker({
+                  map,
+                  position: results[0].geometry.location,
+                  title: entry.Name || entry.Address
+                });
+              } else {
+                console.warn('Geocode failed for ' + entry.Address);
+              }
+            });
+          }
+        });
+      }
+    </script>
+    <script async
+      src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&callback=initMap">
+    </script>
+  </body>
+</html>
